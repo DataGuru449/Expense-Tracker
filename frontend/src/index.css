@@ -1,0 +1,198 @@
+/* ---- Base / Theme ---- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root{
+  --bg: #0f1226;
+  --bg-2: #121634;
+  --card: #ffffff;
+  --text: #0f1226;
+  --muted: #6b7280;
+  --primary: #4f46e5;   /* indigo-600 */
+  --primary-600: #4338ca;
+  --ring: rgba(79,70,229,.35);
+  --danger: #dc2626;
+  --danger-600: #b91c1c;
+  --border: #e9e9f1;
+  --table-alt: #fafafc;
+  --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+
+body{
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:
+    radial-gradient(1200px 600px at -10% -10%, #262a64 0%, transparent 60%),
+    radial-gradient(900px 400px at 110% -10%, #5b21b6 0%, transparent 60%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  color: var(--text);
+}
+
+/* ---- Layout ---- */
+.app{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+}
+
+.app-header{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: #fff;
+}
+.app-title{
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: .2px;
+}
+.kpi{
+  color: #fff;
+  opacity: .9;
+  font-weight: 600;
+}
+
+/* ---- Cards & Grid ---- */
+.grid{ display: grid; gap: 24px; }
+
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.card h3{
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #111827;
+}
+
+/* Charts column layout */
+.charts-grid{
+  grid-template-columns: 2fr 1fr;
+}
+.chart-card{
+  height: 320px;
+}
+
+@media (max-width: 980px){
+  .charts-grid{ grid-template-columns: 1fr; }
+}
+
+/* ---- Form ---- */
+.form-grid{
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  align-items: end;
+  margin: 14px 0 22px;
+}
+
+label{
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+input[type="date"],
+input[type="number"],
+input[type="text"],
+select{
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  transition: box-shadow .15s ease, border-color .15s ease, transform .02s ease;
+}
+input:focus, select:focus{
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+/* ---- Buttons ---- */
+.btn{
+  appearance: none;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .02s ease, filter .2s ease, background .2s ease;
+}
+.btn:active{ transform: translateY(1px); }
+
+.btn-primary{
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover{ background: var(--primary-600); filter: brightness(1.02); }
+
+.btn-ghost{
+  background: #f3f4f6;
+  color: #111827;
+}
+.btn-ghost:hover{ filter: brightness(0.98); }
+
+.btn-danger{
+  background: var(--danger);
+  color: #fff;
+}
+.btn-danger:hover{ background: var(--danger-600); }
+
+/* Make the submit button span full width row */
+.form-actions{
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+}
+
+/* ---- Table ---- */
+.table-wrap{ overflow: auto; }
+table{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+thead th{
+  text-align: left;
+  background: var(--table-alt);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 8px;
+  color: #111827;
+}
+tbody td{
+  border-bottom: 1px solid var(--border);
+  padding: 10px 8px;
+}
+tbody tr:hover{
+  background: #fcfcff;
+}
+.table-actions{
+  white-space: nowrap;
+  display: flex;
+  gap: 6px;
+}
+
+/* ---- Utility ---- */
+.text-light{ color: var(--muted); }
+.pill{
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.25);
+  padding: 8px 12px;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+}
