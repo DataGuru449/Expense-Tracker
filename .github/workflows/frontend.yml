@@ -89,4 +89,9 @@ concurrency:
 - name: SPA 404 fallback
   run: cp dist/index.html dist/404.html
   working-directory: frontend
+  - name: Upload Pages artifact
+  uses: actions/upload-pages-artifact@v3
+  with:
+    path: frontend/dist    # Vite output folder
+
 
