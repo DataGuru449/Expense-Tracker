@@ -67,3 +67,26 @@ jobs:
       - name: Deploy to Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+# …build steps…
+
+- name: Upload Pages artifact
+  uses: actions/upload-pages-artifact@v3
+  with:
+    path: frontend/dist   # Vite output folder
+
+- name: Deploy to Pages
+  id: deployment
+  uses: actions/deploy-pages@v4
+- name: SPA 404 fallback
+  run: cp dist/index.html dist/404.html
+  working-directory: frontend
+
