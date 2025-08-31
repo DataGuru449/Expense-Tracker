@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Trigger Render Deploy Hook (optional)
         env:
-           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
           if [ -z "$RENDER_DEPLOY_HOOK" ]; then
             echo "No RENDER_DEPLOY_HOOK set; skipping deploy."
