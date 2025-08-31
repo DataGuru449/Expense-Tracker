@@ -27,27 +27,16 @@ jobs:
       NODE_ENV:    ${{ secrets.NODE_ENV }}
       PORT:        ${{ secrets.PORT }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20.x"
           cache: npm
           cache-dependency-path: backend/package-lock.json
-
-      - name: Install
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint --if-present
-
-      - name: Test
-        run: npm test --if-present -- --ci --passWithNoTests
-
-      - name: Build
-        run: npm run build --if-present
+      - run: npm ci
+      - run: npm run lint --if-present
+      - run: npm test --if-present -- --ci --passWithNoTests
+      - run: npm run build --if-present
 
   deploy:
     name: Deploy to Render (on push to main)
@@ -57,10 +46,10 @@ jobs:
     steps:
       - name: Trigger Render Deploy Hook (optional)
         env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          if [ -z "${RENDER_DEPLOY_HOOK}" ]; then
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
             echo "No RENDER_DEPLOY_HOOK set; skipping deploy."
             exit 0
           fi
-          curl -fsSL -X POST "${RENDER_DEPLOY_HOOK}"
+          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK"
