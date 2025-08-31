@@ -44,7 +44,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/dist
+          path: frontend/dist   # Vite output
 
   deploy:
     name: Deploy to GitHub Pages (on push to main)
