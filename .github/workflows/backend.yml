@@ -31,7 +31,16 @@ jobs:
         env:
           NODE_ENV: development
 
-      - name: Test (only if a test script exists)
+      - name: Lint (if script exists)
+        shell: bash
+        run: |
+          if npm run | grep -qE '(^|[[:space:]])lint([[:space:]]|:)'; then
+            npm run lint
+          else
+            echo "Skipping lint: no lint script"
+          fi
+
+      - name: Test (if script exists)
         shell: bash
         run: |
           if npm run | grep -qE '(^|[[:space:]])test([[:space:]]|:)'; then
@@ -40,6 +49,10 @@ jobs:
             echo "Skipping tests: no test script"
           fi
 
-      - name: Build
+      - name: Build (if script exists)
         run: npm run build --if-present
 
+      # Runs an npm audit; logs result but won't fail your build.
+      - name: Security audit (npm audit)
+        continue-on-error: true
+        run: npm audit --audit-level=high
