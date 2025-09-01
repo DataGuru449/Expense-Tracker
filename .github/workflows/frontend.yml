@@ -1,4 +1,4 @@
-name: CI + Pages – Frontend
+name: Lint / Test / Build (frontend)
 
 on:
   push:
@@ -13,16 +13,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
 
 jobs:
   build:
-    name: Lint / Test / Build (frontend)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -36,25 +29,5 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run lint --if-present
-      - run: npm test --if-present -- --ci --passWithNoTests
-      - run: npm run build
-      # SPA refresh fix (optional but recommended)
-      - name: SPA 404 fallback
-        run: cp dist/index.html dist/404.html
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: frontend/dist   # Vite output
-
-  deploy:
-    name: Deploy to GitHub Pages (on push to main)
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - run: npm test --if-present -- --ci
+      - run: npm run build --if-present
