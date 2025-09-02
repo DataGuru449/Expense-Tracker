@@ -4,13 +4,16 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from "recharts";
-import "./index.css"; // ⬅️ NEW
+import "./index.css";
 
-const API_URL = "http://localhost:5000"; // backend
+// ---- API base (env first, fallback to local) ----
+const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:5000").replace(/\/$/, "");
+axios.defaults.baseURL = API_URL;
+axios.defaults.withCredentials = true;
 
 const CATEGORIES = [
-  "Groceries","Shopping","Entertainment","Credit Cards","Amenities",
-  "Travel","Education","Medical","Miscellaneous"
+  "Groceries", "Shopping", "Entertainment", "Credit Cards", "Amenities",
+  "Travel", "Education", "Medical", "Miscellaneous"
 ];
 
 // Simple currency formatter
@@ -26,12 +29,23 @@ export default function App() {
     date: "", category: "Groceries", merchant: "", paymentMethod: "card", amount: "", notes: ""
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError]   = useState("");
 
   const load = async () => {
     setLoading(true);
-    const { data } = await axios.get(`${API_URL}/api/expenses`);
-    setItems(data);
-    setLoading(false);
+    try {
+      const { data } = await axios.get("/api/expenses");
+      setItems(Array.isArray(data) ? data : []);
+      setError("");
+    } catch (e) {
+      console.error(e);
+      const msg = e?.response
+        ? `${e.response.status} ${e.response.statusText}`
+        : (e?.message || "Request failed");
+      setError(`Failed to load expenses: ${msg}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -45,7 +59,8 @@ export default function App() {
       const k = monthKey(x.date);
       byMonth.set(k, (byMonth.get(k) || 0) + Number(x.amount || 0));
     }
-    return Array.from(byMonth, ([name, value]) => ({ name, value })).sort((a,b)=>a.name.localeCompare(b.name));
+    return Array.from(byMonth, ([name, value]) => ({ name, value }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [items]);
 
   // Category totals for pie
@@ -65,15 +80,25 @@ export default function App() {
       alert("Date, Merchant, and Amount are required.");
       return;
     }
-    await axios.post(`${API_URL}/api/expenses`, payload);
-    setForm({ date:"", category:"Groceries", merchant:"", paymentMethod:"card", amount:"", notes:"" });
-    load();
+    try {
+      await axios.post("/api/expenses", payload);
+      setForm({ date:"", category:"Groceries", merchant:"", paymentMethod:"card", amount:"", notes:"" });
+      await load();
+    } catch (e2) {
+      console.error(e2);
+      alert("Failed to add expense.");
+    }
   };
 
   const remove = async (id) => {
     if (!confirm("Delete this expense?")) return;
-    await axios.delete(`${API_URL}/api/expenses/${id}`);
-    load();
+    try {
+      await axios.delete(`/api/expenses/${id}`);
+      await load();
+    } catch (e3) {
+      console.error(e3);
+      alert("Failed to delete.");
+    }
   };
 
   return (
@@ -160,7 +185,9 @@ export default function App() {
       {/* Table */}
       <div className="card">
         <h3>Recent Expenses</h3>
-        {loading ? <p className="text-light">Loading…</p> : (
+        {loading ? <p className="text-light">Loading…</p> : error ? (
+          <p style={{ color: "tomato" }}>{error}</p>
+        ) : (
           <div className="table-wrap">
             <table>
               <thead>
