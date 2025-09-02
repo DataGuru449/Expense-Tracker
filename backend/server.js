@@ -1,27 +1,32 @@
 // backend/server.js
-require('dotenv').config();
+require('dotenv').config({ override: true });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-const Expense = require('./models/Expense'); // shared model file
-const Budget = require('./models/budget');   // new model
+const Expense = require('./models/Expense'); // your model
+const Budget = require('./models/budget');   // your model
 
 const app = express();
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'] }));
+
+// Allow both localhost and 127.0.0.1 (Vite defaults) on common ports
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5174',
+];
+
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use(express.json());
 
-const { MONGODB_URI, PORT = 5000 } = process.env;
+// Env + defaults
+const MONGODB_URI = process.env.MONGODB_URI;
+const PORT = Number(process.env.PORT) || 5000;
+const HOST = process.env.HOST || '0.0.0.0'; // bind IPv4 so 127.0.0.1 works
 
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => {
-    console.error('MongoDB connection error:', err.message);
-    process.exit(1);
-  });
-
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+// ------- Health -------
+app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 // ------- Expenses -------
 
@@ -48,10 +53,12 @@ app.post('/api/expenses', async (req, res) => {
   try {
     const { date, category, merchant, paymentMethod, amount, notes } = req.body;
     const item = await Expense.create({
-      date: new Date(date),
-      category, merchant, paymentMethod,
+      date: date ? new Date(date) : new Date(),
+      category,
+      merchant,
+      paymentMethod,
       amount: Number(amount),
-      notes: notes || ''
+      notes: notes || '',
     });
     res.status(201).json(item);
   } catch (e) {
@@ -59,11 +66,11 @@ app.post('/api/expenses', async (req, res) => {
   }
 });
 
-// Update expense (NEW)
+// Update expense
 app.put('/api/expenses/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const body = req.body || {};
+    const body = { ...req.body };
     if (body.date) body.date = new Date(body.date);
     if (body.amount != null) body.amount = Number(body.amount);
     const updated = await Expense.findByIdAndUpdate(id, body, { new: true });
@@ -83,13 +90,13 @@ app.delete('/api/expenses/:id', async (req, res) => {
   }
 });
 
-// ------- Monthly Budget (NEW) -------
+// ------- Monthly Budget -------
 
 // Get budget for a month: /api/budget?month=YYYY-MM
 app.get('/api/budget', async (req, res) => {
   try {
     const { month } = req.query;
-    if (!month) return res.status(400).json({ error: "month (YYYY-MM) is required" });
+    if (!month) return res.status(400).json({ error: 'month (YYYY-MM) is required' });
     const doc = await Budget.findOne({ month }).lean();
     res.json(doc || { month, amount: 0 });
   } catch (e) {
@@ -101,7 +108,7 @@ app.get('/api/budget', async (req, res) => {
 app.post('/api/budget', async (req, res) => {
   try {
     const { month, amount } = req.body;
-    if (!month) return res.status(400).json({ error: "month (YYYY-MM) is required" });
+    if (!month) return res.status(400).json({ error: 'month (YYYY-MM) is required' });
     const updated = await Budget.findOneAndUpdate(
       { month },
       { month, amount: Number(amount || 0) },
@@ -113,4 +120,17 @@ app.post('/api/budget', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));
+// ------- Start server only after DB connects -------
+(async () => {
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log('MongoDB connected');
+    app.listen(PORT, HOST, () => {
+      const shown = HOST === '0.0.0.0' ? 'localhost' : HOST;
+      console.log(`API listening on http://${shown}:${PORT}`);
+    });
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  }
+})();
